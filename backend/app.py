@@ -14,26 +14,34 @@ from utils.onprem_tco import calculate_onprem_tco
 from schemas import CalcPayload
 
 app = Flask(__name__)
-# For development it's convenient to allow all origins; lock this down for production
 CORS(app)
 
 logger = logging.getLogger(__name__)
 
 
+# ✅ Health route (root)
 @app.route("/", methods=["GET"])
 def health():
     return {"status": "Backend is running"}, 200
 
 
-@app.route("/calculate", methods=["POST"])
+# ✅ Production health route
+@app.route("/api/health", methods=["GET"])
+def api_health():
+    return {"service": "InfraCostIQ API", "status": "ok"}, 200
+
+
+# ✅ Calculate route
+@app.route("/api/calculate", methods=["POST"])
 def calculate():
     try:
-        payload = CalcPayload(**request.json or {})
+        payload = CalcPayload(**(request.json or {}))
     except ValidationError as e:
         logger.debug("Validation error: %s", e)
         return jsonify({"error": "invalid input", "details": e.errors()}), 400
 
     d = payload.dict()
+
     try:
         return jsonify({
             "aws": aws_cost(**d),
@@ -53,7 +61,8 @@ def calculate():
         return jsonify({"error": "internal server error"}), 500
 
 
-@app.route("/catalog", methods=["GET"])
+# ✅ Catalog route
+@app.route("/api/catalog", methods=["GET"])
 def get_catalog():
     data_dir = os.path.join(os.path.dirname(__file__), "data")
 
@@ -76,3 +85,53 @@ def get_catalog():
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
+import resend
+
+resend.api_key = "re_HVBdgGCL_EM9kwMKXchmpKbMeupPD9rSg"
+
+@app.route("/api/contact", methods=["POST"])
+def contact():
+    data = request.json
+
+    name = data.get("name")
+    email = data.get("email")
+    message = data.get("message")
+
+    try:
+        # 📩 Mail to YOU
+        resend.Emails.send({
+            "from": "srinath@infracostiq.com",
+            "to": ["srinath@infracostiq.com"],
+            "subject": "New Contact - InfraCostIQ",
+            "text": f"""
+New Contact Form Submission
+
+Name: {name}
+Email: {email}
+
+Message:
+{message}
+"""
+        })
+
+        # 📩 Auto reply to USER
+        resend.Emails.send({
+            "from": "srinath@infracostiq.com",
+            "to": [email],
+            "subject": "Thanks for contacting InfraCostIQ",
+            "text": f"""
+Hi {name},
+
+Thanks for reaching out to InfraCostIQ.
+
+We have received your message and will get back to you soon.
+
+Regards,
+InfraCostIQ Team
+"""
+        })
+
+        return {"status": "sent"}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500

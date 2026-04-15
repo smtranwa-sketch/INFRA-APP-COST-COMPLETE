@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 
-const WEB3FORMS_ACCESS_KEY = "f3d4e040-7f72-492d-be54-2d733681b427";
-
 export default function ContactSection() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,22 +17,22 @@ export default function ContactSection() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
+      const res = await fetch("https://infracostiq.com/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
           name,
           email,
           message,
-          subject: `InfraCostIQ Contact Form: ${name}`,
         }),
       });
 
       const data = await res.json();
 
-      if (!res.ok || data.success === false) {
-        throw new Error(data?.message || "Submission failed");
+      if (!res.ok) {
+        throw new Error(data?.error || "Submission failed");
       }
 
       setSubmitted(true);
@@ -42,7 +40,7 @@ export default function ContactSection() {
       setEmail("");
       setMessage("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to send message. Please try again.");
+      setError(err instanceof Error ? err.message : "Unable to send message");
     } finally {
       setSubmitting(false);
     }
@@ -52,7 +50,9 @@ export default function ContactSection() {
     <section id="contact" className="max-w-6xl mx-auto px-4 py-10 scroll-mt-16">
       <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 md:p-8 max-w-2xl">
         <h2 className="text-2xl md:text-3xl text-slate-100 font-bold">Contact</h2>
-        <p className="text-slate-300 mt-3">Share your use case and we can help refine your cost planning approach.</p>
+        <p className="text-slate-300 mt-3">
+          Share your use case and we can help refine your cost planning approach.
+        </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <input
@@ -62,6 +62,7 @@ export default function ContactSection() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+
           <input
             type="email"
             className="w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-400"
@@ -70,6 +71,7 @@ export default function ContactSection() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+
           <textarea
             className="w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-400 min-h-28"
             placeholder="Message"
@@ -77,6 +79,7 @@ export default function ContactSection() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
+
           <button
             type="submit"
             disabled={submitting}
@@ -84,7 +87,13 @@ export default function ContactSection() {
           >
             {submitting ? "Sending..." : "Send Message"}
           </button>
-          {submitted && <p className="text-emerald-400 text-sm">Thanks for Contacting. !! Will getback to you ASAP !!</p>}
+
+          {submitted && (
+            <p className="text-emerald-400 text-sm">
+              Thanks for contacting! We will get back to you soon.
+            </p>
+          )}
+
           {error && <p className="text-rose-400 text-sm">{error}</p>}
         </form>
       </div>

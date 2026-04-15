@@ -93,7 +93,7 @@ export default function Home() {
   const handleCalculate = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/calculate`, {
+      const res = await fetch(`${API_BASE}/api/calculate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
