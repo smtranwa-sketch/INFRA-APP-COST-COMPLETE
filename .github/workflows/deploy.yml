@@ -13,19 +13,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Server
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /var/www/app
+            echo "🚀 Starting deployment..."
+
+            cd /var/www/INFRA-APP-COST-COMPLETE
+
+            echo "📥 Pulling latest code..."
             git pull origin main
 
-            cd frontend
+            echo "🐍 Updating backend..."
+            cd backend
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            echo "⚙️ Building frontend..."
+            cd ../frontend
             npm install
             npm run build
 
-            sudo systemctl restart frontend
-            sudo systemctl restart flask-api
+            echo "🔁 Restarting services..."
+            sudo systemctl restart infracostiq-backend
+            sudo systemctl restart infracostiq-frontend
+
+            echo "✅ Deployment complete!"
