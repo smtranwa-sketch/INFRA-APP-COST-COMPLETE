@@ -42,6 +42,15 @@ def test_instance_count_multiplier():
     assert round(triple["aws"]["breakdown"]["instance"], 2) == round(single["aws"]["breakdown"]["instance"] * 3, 2)
 
 
+def test_instance_count_multiplier_onprem_and_k8s():
+    client = app.test_client()
+    single = client.post("/calculate", json=_payload(instance_count=1)).get_json()
+    triple = client.post("/calculate", json=_payload(instance_count=3)).get_json()
+
+    assert round(triple["onprem"]["total"], 2) == round(single["onprem"]["total"] * 3, 2)
+    assert round(triple["kubernetes"]["total"], 2) == round(single["kubernetes"]["total"] * 3, 2)
+
+
 def test_storage_type_gp3_vs_io2():
     client = app.test_client()
     gp3 = client.post("/calculate", json=_payload(aws_storage_type="gp3")).get_json()
