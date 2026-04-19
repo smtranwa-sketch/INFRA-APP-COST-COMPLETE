@@ -114,7 +114,6 @@ const OptionsPanel: React.FC<Props> = ({
   const [activeProvider, setActiveProvider] = useState<ProviderKey>("aws");
   const [catalogPayload, setCatalogPayload] = useState<CatalogPayload>(fallbackCatalog);
   const [catalogLoading, setCatalogLoading] = useState(true);
-  const [catalogWarning, setCatalogWarning] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -126,12 +125,10 @@ const OptionsPanel: React.FC<Props> = ({
         const data = (await res.json()) as CatalogPayload;
         if (mounted) {
           setCatalogPayload(data);
-          setCatalogWarning(false);
         }
       } catch {
         if (mounted) {
           setCatalogPayload(fallbackCatalog);
-          setCatalogWarning(true);
         }
       } finally {
         if (mounted) setCatalogLoading(false);
@@ -178,12 +175,6 @@ const OptionsPanel: React.FC<Props> = ({
 
       {catalogLoading ? (
         <div className="text-sm text-slate-300 mb-3">Loading catalog...</div>
-      ) : null}
-
-      {catalogWarning ? (
-        <div className="mb-3 rounded-md border border-yellow-500/40 bg-yellow-500/10 text-yellow-300 text-xs px-3 py-2">
-          Using cached catalog — prices may be stale
-        </div>
       ) : null}
 
       <div className="space-y-3">
